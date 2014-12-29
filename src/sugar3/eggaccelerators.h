@@ -71,7 +71,7 @@ typedef enum
 gboolean egg_accelerator_parse_virtual        (const gchar            *accelerator,
                                                guint                  *accelerator_key,
 					       guint                  *keycode,
-                                               EggVirtualModifierType *accelerator_mods);
+                                               GdkModifierType *accelerator_mods);
 void     egg_keymap_resolve_virtual_modifiers (GdkKeymap              *keymap,
                                                EggVirtualModifierType  virtual_mods,
                                                GdkModifierType        *concrete_mods);

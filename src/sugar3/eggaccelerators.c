@@ -24,7 +24,6 @@
 #include <string.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
 
 enum
 {
@@ -212,8 +211,8 @@ is_keycode (const gchar *string)
 gboolean
 egg_accelerator_parse_virtual (const gchar            *accelerator,
                                guint                  *accelerator_key,
-			                         guint                  *keycode,
-                               EggVirtualModifierType *accelerator_mods)
+                               guint                  *keycode,
+                               GdkModifierType *accelerator_mods)
 {
   if (accelerator_key)
     *accelerator_key = 0;
