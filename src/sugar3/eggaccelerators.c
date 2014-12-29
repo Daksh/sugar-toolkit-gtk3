@@ -24,6 +24,7 @@
 #include <string.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
 
 enum
 {
@@ -211,14 +212,9 @@ is_keycode (const gchar *string)
 gboolean
 egg_accelerator_parse_virtual (const gchar            *accelerator,
                                guint                  *accelerator_key,
-			       guint                  *keycode,
+			                         guint                  *keycode,
                                EggVirtualModifierType *accelerator_mods)
 {
-  guint keyval;
-  GdkModifierType mods;
-  gint len;
-  gboolean bad_keyval;
-
   if (accelerator_key)
     *accelerator_key = 0;
   if (accelerator_mods)
@@ -228,146 +224,11 @@ egg_accelerator_parse_virtual (const gchar            *accelerator,
 
   g_return_val_if_fail (accelerator != NULL, FALSE);
 
-  bad_keyval = FALSE;
+  gtk_accelerator_parse(&accelerator, &accelerator_key, &accelerator_mods);
 
-  keyval = 0;
-  mods = 0;
-  len = strlen (accelerator);
-  while (len)
-    {
-      if (*accelerator == '<')
-	{
-	  if (len >= 9 && is_release (accelerator))
-	    {
-	      accelerator += 9;
-	      len -= 9;
-	      mods |= EGG_VIRTUAL_RELEASE_MASK;
-	    }
-	  else if (len >= 9 && is_control (accelerator))
-	    {
-	      accelerator += 9;
-	      len -= 9;
-	      mods |= EGG_VIRTUAL_CONTROL_MASK;
-	    }
-	  else if (len >= 7 && is_shift (accelerator))
-	    {
-	      accelerator += 7;
-	      len -= 7;
-	      mods |= EGG_VIRTUAL_SHIFT_MASK;
-	    }
-	  else if (len >= 6 && is_shft (accelerator))
-	    {
-	      accelerator += 6;
-	      len -= 6;
-	      mods |= EGG_VIRTUAL_SHIFT_MASK;
-	    }
-	  else if (len >= 6 && is_ctrl (accelerator))
-	    {
-	      accelerator += 6;
-	      len -= 6;
-	      mods |= EGG_VIRTUAL_CONTROL_MASK;
-	    }
-	  else if (len >= 6 && is_modx (accelerator))
-	    {
-	      static const guint mod_vals[] = {
-		EGG_VIRTUAL_ALT_MASK, EGG_VIRTUAL_MOD2_MASK, EGG_VIRTUAL_MOD3_MASK,
-		EGG_VIRTUAL_MOD4_MASK, EGG_VIRTUAL_MOD5_MASK
-	      };
-
-	      len -= 6;
-	      accelerator += 4;
-	      mods |= mod_vals[*accelerator - '1'];
-	      accelerator += 2;
-	    }
-	  else if (len >= 5 && is_ctl (accelerator))
-	    {
-	      accelerator += 5;
-	      len -= 5;
-	      mods |= EGG_VIRTUAL_CONTROL_MASK;
-	    }
-	  else if (len >= 5 && is_alt (accelerator))
-	    {
-	      accelerator += 5;
-	      len -= 5;
-	      mods |= EGG_VIRTUAL_ALT_MASK;
-	    }
-          else if (len >= 6 && is_meta (accelerator))
-	    {
-	      accelerator += 6;
-	      len -= 6;
-	      mods |= EGG_VIRTUAL_META_MASK;
-	    }
-          else if (len >= 7 && is_hyper (accelerator))
-	    {
-	      accelerator += 7;
-	      len -= 7;
-	      mods |= EGG_VIRTUAL_HYPER_MASK;
-	    }
-          else if (len >= 7 && is_super (accelerator))
-	    {
-	      accelerator += 7;
-	      len -= 7;
-	      mods |= EGG_VIRTUAL_SUPER_MASK;
-	    }
-	  else
-	    {
-	      gchar last_ch;
-
-	      last_ch = *accelerator;
-	      while (last_ch && last_ch != '>')
-		{
-		  last_ch = *accelerator;
-		  accelerator += 1;
-		  len -= 1;
-		}
-	    }
-	}
-      else
-	{
-          keyval = gdk_keyval_from_name (accelerator);
-
-          if (keyval == 0)
-	    {
-	      /* If keyval is 0, than maybe it's a keycode.  Check for 0x## */
-	      if (len >= 4 && is_keycode (accelerator))
-		{
-		  char keystring[5];
-		  gchar *endptr;
-		  gint tmp_keycode;
-
-		  memcpy (keystring, accelerator, 4);
-		  keystring [4] = '\000';
-
-		  tmp_keycode = strtol (keystring, &endptr, 16);
-
-		  if (endptr == NULL || *endptr != '\000')
-		    {
-		      bad_keyval = TRUE;
-		    }
-		  else if (keycode != NULL)
-		    {
-		      *keycode = tmp_keycode;
-		      /* 0x00 is an invalid keycode too. */
-		      if (*keycode == 0)
-			bad_keyval = TRUE;
-		    }
-		}
-	    } else if (keycode != NULL) {
-		GdkDisplay *display = gdk_display_get_default ();
-		*keycode = XKeysymToKeycode (GDK_DISPLAY_XDISPLAY(display),
-					     keyval);
-	    }
-          accelerator += len;
-          len -= len;
-	}
-    }
-
-  if (accelerator_key)
-    *accelerator_key = gdk_keyval_to_lower (keyval);
-  if (accelerator_mods)
-    *accelerator_mods = mods;
-
-  return !bad_keyval;
+  if(*accelerator_key != 0)
+    return TRUE;
+  return FALSE;
 }
 
 
