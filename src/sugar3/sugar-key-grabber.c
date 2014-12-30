@@ -219,6 +219,28 @@ grab_key (SugarKeyGrabber *grabber, Key *key, gboolean grab)
         }
 }
 
+gboolean
+myfunc_accelerator_parse_virtual (const gchar            *accelerator,
+                                  guint                  *accelerator_key,
+                                  guint                  *keycode,
+                                  GdkModifierType *accelerator_mods)
+{
+  if (accelerator_key)
+    *accelerator_key = 0;
+  if (accelerator_mods)
+    *accelerator_mods = 0;
+  if (keycode)
+    *keycode = 0;
+
+  g_return_val_if_fail (accelerator != NULL, FALSE);
+
+  gtk_accelerator_parse(&accelerator, &accelerator_key, &accelerator_mods);
+
+  if(*accelerator_key != 0)
+    return TRUE;
+  return FALSE;
+}
+
 /**
  * sugar_key_grabber_grab_keys:
  * @grabber: a #SugarKeyGrabber
@@ -245,7 +267,7 @@ sugar_key_grabber_grab_keys(SugarKeyGrabber *grabber,
 	keyinfo = g_new0 (Key, 1);
 	keyinfo->key = g_strdup(keys[i]);
 
-        if (!egg_accelerator_parse_virtual (keys[i], &keyinfo->keysym,
+        if (!myfunc_accelerator_parse_virtual (keys[i], &keyinfo->keysym,
                                             &keyinfo->keycode,
                                             &keyinfo->state)) {
             g_warning ("Invalid key specified: %s", keys[i]);
